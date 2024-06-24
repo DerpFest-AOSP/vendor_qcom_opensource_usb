@@ -50,6 +50,7 @@
 #define PERSIST_VENDOR_USB_PROP "persist.vendor.usb.config"
 #define PERSIST_VENDOR_USB_EXTRA_PROP "persist.vendor.usb.config.extra"
 #define QDSS_INST_NAME_PROP "vendor.usb.qdss.inst.name"
+#define UVC_ENABLED_PROP "ro.usb.uvc.enabled"
 #define CONFIG_STRING CONFIG_PATH "strings/0x409/configuration"
 
 namespace android {
@@ -60,6 +61,7 @@ namespace V1_2 {
 namespace implementation {
 
 using ::android::sp;
+using ::android::base::GetBoolProperty;
 using ::android::base::GetProperty;
 using ::android::base::SetProperty;
 using ::android::base::WriteStringToFile;
@@ -76,6 +78,9 @@ using ::android::hardware::usb::gadget::resetGadget;
 using ::android::hardware::usb::gadget::setVidPid;
 using ::android::hardware::usb::gadget::unlinkFunctions;
 using ::android::hardware::usb::gadget::V1_2::UsbSpeed;
+
+// Matches the definition in AIDL Gadget HAL
+constexpr auto kGadgetFunctionUvc = 1 << 7;
 
 static std::map<std::string, std::tuple<std::string, std::string, std::string> >
 supported_compositions;
@@ -331,6 +336,22 @@ static V1_0::Status validateAndSetVidPid(uint64_t functions) {
 	    GadgetFunction::AUDIO_SOURCE:
       ret = setVidPid("0x18d1", "0x2d05");
       break;
+    case kGadgetFunctionUvc:
+        if (!GetBoolProperty(UVC_ENABLED_PROP, false)) {
+            ALOGE("UVC function not enabled by config");
+            ret = Status::CONFIGURATION_NOT_SUPPORTED;
+        } else {
+            ret = setVidPid("0x18d1", "0x4eed");
+        }
+        break;
+    case GadgetFunction::ADB | kGadgetFunctionUvc:
+        if (!GetBoolProperty(UVC_ENABLED_PROP, false)) {
+            ALOGE("UVC function not enabled by config");
+            ret = Status::CONFIGURATION_NOT_SUPPORTED;
+        } else {
+            ret = setVidPid("0x18d1", "0x4eee");
+        }
+        break;
     default:
       ALOGE("Combination not supported");
       ret = Status::CONFIGURATION_NOT_SUPPORTED;
@@ -395,6 +416,18 @@ V1_0::Status UsbGadget::setupFunctions(
     if ((functions & GadgetFunction::ADB) != 0) {
       ffsEnabled = true;
       if (addAdb(&mMonitorFfs, &i) != Status::SUCCESS) return Status::ERROR;
+    }
+
+    if ((functions & kGadgetFunctionUvc) != 0) {
+        if (!GetBoolProperty(UVC_ENABLED_PROP, false)) {
+            ALOGE("UVC function disabled by config");
+            return Status::ERROR;
+        }
+
+        ALOGI("setCurrentUsbFunctions uvc");
+        if (linkFunction("uvc.0", i++)) {
+            return Status::ERROR;
+        }
     }
   }
 
