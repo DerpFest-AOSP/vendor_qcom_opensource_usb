@@ -116,13 +116,26 @@ on post-fs-data
     mkdir /config/usb_gadget/g1/functions/rmnet_bam.dpl_bam_dmux
     mkdir /config/usb_gadget/g1/functions/ncm.gs6
     mkdir /config/usb_gadget/g1/functions/ccid.ccid
+    mkdir /config/usb_gadget/g1/functions/hid.usb0
     mkdir /config/usb_gadget/g1/functions/uac1.uac1
     mkdir /config/usb_gadget/g1/functions/uac2.0
     mkdir /config/usb_gadget/g1/functions/uvc.0
+    mkdir /config/usb_gadget/g1/functions/uvc.1
+    mkdir /config/usb_gadget/g1/functions/uvc.2
+    mkdir /config/usb_gadget/g1/functions/uvc.3
+    mkdir /config/usb_gadget/g1/functions/uvc.4
+    mkdir /config/usb_gadget/g1/functions/uvc.5
+    mkdir /config/usb_gadget/g1/functions/uvc.6
+    mkdir /config/usb_gadget/g1/functions/uvc.7
+    mkdir /config/usb_gadget/g1/functions/uvc.8
+    mkdir /config/usb_gadget/g1/functions/uvc.9
+    mkdir /config/usb_gadget/g1/functions/uvc.10
     mkdir /config/usb_gadget/g1/configs/b.1 0770
     mkdir /config/usb_gadget/g2/configs/b.1 0770
     mkdir /config/usb_gadget/g1/configs/b.1/strings/0x409 0770
     mkdir /config/usb_gadget/g2/configs/b.1/strings/0x409 0770
+    chown root system  config/usb_gadget/g1/configs/b.1
+    chown root system  config/usb_gadget/g1/configs/b.1/strings/0x409
     write /config/usb_gadget/g1/configs/b.1/MaxPower 900
     write /config/usb_gadget/g1/os_desc/b_vendor_code 0x1
     write /config/usb_gadget/g1/os_desc/qw_sign "MSFT100"
@@ -187,6 +200,11 @@ on property:sys.usb.config=none && property:sys.usb.configfs=1
     rm /config/usb_gadget/g1/configs/b.1/f7
     rm /config/usb_gadget/g1/configs/b.1/f8
     rm /config/usb_gadget/g1/configs/b.1/f9
+    rm /config/usb_gadget/g1/configs/b.1/f10
+    rm /config/usb_gadget/g1/configs/b.1/f11
+    rm /config/usb_gadget/g1/configs/b.1/f12
+    rm /config/usb_gadget/g1/configs/b.1/f13
+    rm /config/usb_gadget/g1/configs/b.1/f14
 
 on property:sys.usb.config=mass_storage && property:sys.usb.configfs=1
     write /config/usb_gadget/g1/configs/b.1/strings/0x409/configuration "msc"
@@ -241,6 +259,11 @@ on property:sys.usb.ffs.ready=1 && property:sys.usb.config=diag,adb && property:
     rm /config/usb_gadget/g1/configs/b.1/f7
     rm /config/usb_gadget/g1/configs/b.1/f8
     rm /config/usb_gadget/g1/configs/b.1/f9
+    rm /config/usb_gadget/g1/configs/b.1/f10
+    rm /config/usb_gadget/g1/configs/b.1/f11
+    rm /config/usb_gadget/g1/configs/b.1/f12
+    rm /config/usb_gadget/g1/configs/b.1/f13
+    rm /config/usb_gadget/g1/configs/b.1/f14
     symlink /config/usb_gadget/g1/configs/b.1 /config/usb_gadget/g1/os_desc/b.1
     write /config/usb_gadget/g1/idVendor 0x05C6
     write /config/usb_gadget/g1/idProduct 0x901D

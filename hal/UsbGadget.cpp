@@ -225,6 +225,7 @@ static std::map<std::string, std::function<std::string()> > supported_funcs {
   { "serial_cdev_mdm",  [](){ return "cser.dun.2"; } },
   { "uac2",             [](){ return "uac2.0"; } },
   { "uvc",              [](){ return "uvc.0"; } },
+  { "hid",              [](){ return "hid.usb0"; } },
 };
 
 int UsbGadget::addFunctionsFromPropString(std::string prop, bool &ffsEnabled, int &i) {
@@ -255,24 +256,35 @@ int UsbGadget::addFunctionsFromPropString(std::string prop, bool &ffsEnabled, in
       start = end + 1;
     }
 
-    if (!supported_funcs.count(funcname)) {
-      ALOGE("Function \"%s\" unsupported", funcname.c_str());
-      return -1;
-    }
+    if (funcname.find("xuvc") != std::string::npos) {
+        int num = std::stoi(funcname);
+        for (int n = 1; n <= num; n++) {
+           char fname[8];
+           snprintf(fname, sizeof(fname), "uvc.%d", n);
+           if (linkFunction(fname, i))
+               return -1;
+           ++i;
+        }
+     } else {
+        if (!supported_funcs.count(funcname)) {
+            ALOGE("Function \"%s\" unsupported", funcname.c_str());
+            return -1;
+        }
 
-    ALOGI("Adding %s", funcname.c_str());
-    if (funcname == "adb") {
-      if (addAdb(&mMonitorFfs, &i) != Status::SUCCESS)
-        return -1;
-      ffsEnabled = true;
-    } else if (linkFunction(supported_funcs[funcname]().c_str(), i))
-      return -1;
+        ALOGI("Adding %s", funcname.c_str());
+        if (funcname == "adb") {
+           if (addAdb(&mMonitorFfs, &i) != Status::SUCCESS)
+               return -1;
+           ffsEnabled = true;
+        } else if (linkFunction(supported_funcs[funcname]().c_str(), i))
+           return -1;
 
-    // Set Diag PID for QC DLOAD mode
-    if (i == 0 && !strcasecmp(vid.c_str(), "0x05c6") && funcname == "diag")
-      WriteStringToFile(pid, FUNCTIONS_PATH "diag.diag/pid");
+        // Set Diag PID for QC DLOAD mode
+        if (i == 0 && !strcasecmp(vid.c_str(), "0x05c6") && funcname == "diag")
+           WriteStringToFile(pid, FUNCTIONS_PATH "diag.diag/pid");
 
-    ++i;
+        ++i;
+     }
   }
 
   if (setVidPid(vid.c_str(), pid.c_str()) != Status::SUCCESS)
